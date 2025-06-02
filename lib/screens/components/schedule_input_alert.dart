@@ -298,7 +298,6 @@ class _ScheduleInputAlertState extends ConsumerState<ScheduleInputAlert> with Co
     bool errFlg = false;
 
     if (titleEditingController.text.trim() == '' ||
-        locationEditingController.text.trim() == '' ||
         appParamState.selectedStartDate.trim() == '' ||
         appParamState.selectedStartTime == '') {
       errFlg = true;
