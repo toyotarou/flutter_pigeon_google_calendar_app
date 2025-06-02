@@ -8,6 +8,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(debugShowCheckedModeBanner: false, home: HomeScreen());
+    return MaterialApp(
+      theme: ThemeData(useMaterial3: false, colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark)),
+      themeMode: ThemeMode.dark,
+      title: 'Google Calendar App',
+
+      debugShowCheckedModeBanner: false,
+      home: const HomeScreen(),
+    );
   }
 }

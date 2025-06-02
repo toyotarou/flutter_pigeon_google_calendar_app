@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../extensions/extensions.dart';
 import '../pigeons_api/calendar_api.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -92,17 +93,38 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             )
-          : ListView.builder(
-              itemCount: events.length,
-              itemBuilder: (BuildContext context, int index) {
-                final CalendarEvent e = events[index];
+          : Column(
+              children: <Widget>[
+                const CircleAvatar(),
 
-                return ListTile(
-                  title: Text(e.title ?? '無題'),
-                  subtitle: Text('開始: ${DateTime.fromMillisecondsSinceEpoch(e.startTimeMillis ?? 0)}'),
-                );
-              },
+                Divider(color: Colors.white.withValues(alpha: 0.2), thickness: 5),
+
+                Expanded(child: displayEventList()),
+              ],
             ),
     );
+  }
+
+  ///
+  Widget displayEventList() {
+    final List<Widget> list = <Widget>[];
+
+    for (final CalendarEvent element in events) {
+      list.add(
+        SizedBox(
+          width: context.screenSize.width,
+
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(element.title ?? '無題'),
+              Text('開始: ${DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0)}'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(child: Column(children: list));
   }
 }
