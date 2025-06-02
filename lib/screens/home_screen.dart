@@ -95,7 +95,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 status = '予定を追加しました！';
               });
 
-              await loadEvents();
+              // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
             },
 
             ///////////////////////////
@@ -126,9 +127,10 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : Column(
               children: <Widget>[
-                const SizedBox(height: 60, child: Text('list')),
+                //                const SizedBox(height: 60, child: Text('list')),
+                const SizedBox(height: 10),
 
-                Divider(color: Colors.white.withValues(alpha: 0.2), thickness: 5),
+                displayYearList(),
 
                 Expanded(child: displayEventList()),
 
@@ -139,10 +141,66 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   ///
+  Widget displayYearList() {
+    final List<Widget> list = <Widget>[];
+
+    final List<int> yearList = <int>[];
+    for (final CalendarEvent element in events) {
+      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).year;
+
+      if (!yearList.contains(year)) {
+        yearList.add(year);
+      }
+    }
+
+    for (final int element in yearList) {
+      list.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: GestureDetector(
+            onTap: () {
+              scrollToIndex(element);
+            },
+
+            child: CircleAvatar(child: Text(element.toString(), style: const TextStyle(fontSize: 12))),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 40,
+      child: SingleChildScrollView(child: Row(children: list)),
+    );
+  }
+
+  ///
   Widget displayEventList() {
     final List<Widget> list = <Widget>[];
 
+    int keepYear = 0;
+
     for (final CalendarEvent element in events) {
+      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).year;
+
+      if (keepYear != year) {
+        list.add(
+          Container(
+            key: globalKeyList[year],
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
+            margin: const EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+            child: DefaultTextStyle(
+              style: const TextStyle(color: Colors.white),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[Text('$year'), const SizedBox.shrink()],
+              ),
+            ),
+          ),
+        );
+      }
+
       list.add(
         Container(
           width: context.screenSize.width,
@@ -161,8 +219,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
+
+      keepYear = year;
     }
 
-    return SingleChildScrollView(child: Column(children: list));
+    return SingleChildScrollView(
+      child: DefaultTextStyle(
+        style: const TextStyle(fontSize: 12),
+        child: Column(children: list),
+      ),
+    );
+  }
+
+  ///
+  Future<void> scrollToIndex(int index) async {
+    final BuildContext target = globalKeyList[index].currentContext!;
+
+    await Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 1000));
   }
 }
