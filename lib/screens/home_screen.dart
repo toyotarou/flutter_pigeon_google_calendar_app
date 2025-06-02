@@ -16,26 +16,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String status = '読み込み中...';
 
+  List<GlobalKey> globalKeyList = <GlobalKey<State<StatefulWidget>>>[];
+
   ///
   @override
   void initState() {
     super.initState();
+
+    // ignore: always_specify_types
+    globalKeyList = List.generate(3000, (int index) => GlobalKey());
 
     init();
   }
 
   ///
   Future<void> init() async {
-    final PermissionStatus status = await Permission.calendar.status;
-
-    print('初期状態: $status');
+    // final PermissionStatus status = await Permission.calendar.status;
 
     final PermissionStatus result = await Permission.calendar.request();
 
-    print('リクエスト結果: $result');
-
     if (!result.isGranted) {
-      setState(() => this.status = 'カレンダー権限が必要です（現在の状態: $result）');
+      setState(() => status = 'カレンダー権限が必要です（現在の状態: $result）');
 
       return;
     }
@@ -95,7 +96,16 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : Column(
               children: <Widget>[
-                const CircleAvatar(),
+                // GestureDetector(
+                //   onTap: () {
+                //     scrollToIndex(2025);
+                //   },
+                //   child: const CircleAvatar(),
+                // ),
+                //
+                //
+                //
+                displayYearSelectCircleAvatar(),
 
                 Divider(color: Colors.white.withValues(alpha: 0.2), thickness: 5),
 
@@ -108,13 +118,67 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   ///
+  Widget displayYearSelectCircleAvatar() {
+    final List<Widget> list = <Widget>[];
+
+    final List<int> yearsList = <int>[];
+    for (final CalendarEvent element in events) {
+      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis!).year;
+
+      if (!yearsList.contains(year)) {
+        yearsList.add(year);
+      }
+    }
+
+    for (final int element in yearsList) {
+      list.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: GestureDetector(
+            onTap: () {
+              scrollToIndex(element);
+            },
+
+            child: CircleAvatar(child: Text(element.toString(), style: const TextStyle(fontSize: 12))),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 60,
+
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: list),
+          ),
+          const SizedBox.shrink(),
+        ],
+      ),
+    );
+  }
+
+  ///
   Widget displayEventList() {
     final List<Widget> list = <Widget>[];
 
+    String keepYear = '';
     for (final CalendarEvent element in events) {
+      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis!).year;
+
       list.add(
-        SizedBox(
+        Container(
+          key: (year.toString() != keepYear) ? globalKeyList[year] : null,
+
           width: context.screenSize.width,
+
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.3))),
+          ),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,8 +189,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
+
+      if (element.startTimeMillis != null) {
+        keepYear = year.toString();
+      }
     }
 
     return SingleChildScrollView(child: Column(children: list));
+  }
+
+  ///
+  Future<void> scrollToIndex(int index) async {
+    final BuildContext target = globalKeyList[index].currentContext!;
+
+    await Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 1000));
   }
 }
