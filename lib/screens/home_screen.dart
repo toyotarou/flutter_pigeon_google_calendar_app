@@ -100,6 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Divider(color: Colors.white.withValues(alpha: 0.2), thickness: 5),
 
                 Expanded(child: displayEventList()),
+
+                const SizedBox(height: 50),
               ],
             ),
     );
