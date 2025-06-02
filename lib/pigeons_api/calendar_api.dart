@@ -31,12 +31,15 @@ bool _deepEquals(Object? a, Object? b) {
 
 class CalendarEvent {
   CalendarEvent({
+    this.id,
     this.title,
     this.description,
     this.location,
     this.startTimeMillis,
     this.endTimeMillis,
   });
+
+  int? id;
 
   String? title;
 
@@ -50,6 +53,7 @@ class CalendarEvent {
 
   List<Object?> _toList() {
     return <Object?>[
+      id,
       title,
       description,
       location,
@@ -64,11 +68,12 @@ class CalendarEvent {
   static CalendarEvent decode(Object result) {
     result as List<Object?>;
     return CalendarEvent(
-      title: result[0] as String?,
-      description: result[1] as String?,
-      location: result[2] as String?,
-      startTimeMillis: result[3] as int?,
-      endTimeMillis: result[4] as int?,
+      id: result[0] as int?,
+      title: result[1] as String?,
+      description: result[2] as String?,
+      location: result[3] as String?,
+      startTimeMillis: result[4] as int?,
+      endTimeMillis: result[5] as int?,
     );
   }
 
@@ -194,6 +199,29 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[event]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> deleteCalendarEvent(int eventId) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_google_calendar_app.CalendarApi.deleteCalendarEvent$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {

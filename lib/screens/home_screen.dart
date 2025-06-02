@@ -7,6 +7,7 @@ import '../extensions/extensions.dart';
 import '../pigeons_api/calendar_api.dart';
 import 'components/schedule_input_alert.dart';
 import 'parts/calendar_app_dialog.dart';
+import 'parts/delete_event_confirm.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -59,7 +60,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
         final List<String> eventDateList = <String>[];
         for (final CalendarEvent element in eventList) {
           if (!eventDateList.contains(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString())) {
-            events.add(element);
+            final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).year;
+
+            if (year >= 2020) {
+              events.add(element);
+            }
 
             eventDateList.add(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString());
           }
@@ -80,35 +85,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
         title: const Text('カレンダー予定一覧'),
 
         actions: <Widget>[
-          // ElevatedButton(
-          //   ///////////////////////////
-          //   onPressed: () async {
-          //     final DateTime now = DateTime.now();
-          //     final CalendarEvent event = CalendarEvent(
-          //       title: 'テスト予定',
-          //       description: 'pigeonから追加した予定',
-          //       location: '東京',
-          //       startTimeMillis: now.millisecondsSinceEpoch,
-          //       endTimeMillis: now.add(const Duration(hours: 1)).millisecondsSinceEpoch,
-          //     );
-          //
-          //     final CalendarApi api = CalendarApi();
-          //     await api.addCalendarEvent(event);
-          //
-          //     setState(() {
-          //       status = '予定を追加しました！';
-          //     });
-          //
-          //     // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
-          //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
-          //   },
-          //
-          //   ///////////////////////////
-          //   child: const Text('予定を追加'),
-          // ),
-          //
-          //
-          //
           IconButton(
             onPressed: () {
               // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
@@ -192,14 +168,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
     }
 
     return SizedBox(
-      height: 40,
-      child: SingleChildScrollView(child: Row(children: list)),
+      height: 50,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: list),
+      ),
     );
   }
 
   ///
   Widget displayEventList() {
     final List<Widget> list = <Widget>[];
+
+    final CalendarApi api = CalendarApi();
 
     int keepYear = 0;
 
@@ -233,11 +214,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
             border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.3))),
           ),
 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: <Widget>[
-              Text(element.title ?? '無題'),
-              Text('開始: ${DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0)}'),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(element.title ?? '無題'),
+                    Text('開始: ${DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0)}'),
+                  ],
+                ),
+              ),
+
+              IconButton(
+                onPressed: () async {
+                  final bool? confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => DeleteEventConfirmDialog(event: element),
+                  );
+
+                  // ignore: use_if_null_to_convert_nulls_to_bools
+                  if (confirm == true && element.id != null) {
+                    await api.deleteCalendarEvent(element.id!);
+
+                    if (mounted) {
+                      // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+                    }
+                  }
+                },
+                icon: Icon(Icons.delete, color: Colors.white.withValues(alpha: 0.4)),
+              ),
             ],
           ),
         ),

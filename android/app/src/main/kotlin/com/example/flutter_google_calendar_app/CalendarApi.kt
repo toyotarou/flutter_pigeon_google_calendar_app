@@ -80,6 +80,7 @@ class FlutterError (
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class CalendarEvent (
+  val id: Long? = null,
   val title: String? = null,
   val description: String? = null,
   val location: String? = null,
@@ -89,16 +90,18 @@ data class CalendarEvent (
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): CalendarEvent {
-      val title = pigeonVar_list[0] as String?
-      val description = pigeonVar_list[1] as String?
-      val location = pigeonVar_list[2] as String?
-      val startTimeMillis = pigeonVar_list[3] as Long?
-      val endTimeMillis = pigeonVar_list[4] as Long?
-      return CalendarEvent(title, description, location, startTimeMillis, endTimeMillis)
+      val id = pigeonVar_list[0] as Long?
+      val title = pigeonVar_list[1] as String?
+      val description = pigeonVar_list[2] as String?
+      val location = pigeonVar_list[3] as String?
+      val startTimeMillis = pigeonVar_list[4] as Long?
+      val endTimeMillis = pigeonVar_list[5] as Long?
+      return CalendarEvent(id, title, description, location, startTimeMillis, endTimeMillis)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
+      id,
       title,
       description,
       location,
@@ -144,6 +147,7 @@ interface CalendarApi {
   fun getPlatformVersion(): String
   fun getCalendarEvents(): List<CalendarEvent>
   fun addCalendarEvent(event: CalendarEvent)
+  fun deleteCalendarEvent(eventId: Long)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -192,6 +196,24 @@ interface CalendarApi {
             val eventArg = args[0] as CalendarEvent
             val wrapped: List<Any?> = try {
               api.addCalendarEvent(eventArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              CalendarApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_google_calendar_app.CalendarApi.deleteCalendarEvent$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as Long
+            val wrapped: List<Any?> = try {
+              api.deleteCalendarEvent(eventIdArg)
               listOf(null)
             } catch (exception: Throwable) {
               CalendarApiPigeonUtils.wrapError(exception)

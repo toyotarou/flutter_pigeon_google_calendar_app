@@ -10,6 +10,8 @@ import android.content.ContentValues
 import java.util.TimeZone
 import android.util.Log
 
+import android.content.ContentUris
+
 class CalendarApiImpl(private val context: Context) : CalendarApi {
 
     ///
@@ -25,6 +27,7 @@ class CalendarApiImpl(private val context: Context) : CalendarApi {
         val events = mutableListOf<CalendarEvent>()
 
         val projection = arrayOf(
+            CalendarContract.Events._ID,
             CalendarContract.Events.TITLE,
             CalendarContract.Events.DESCRIPTION,
             CalendarContract.Events.EVENT_LOCATION,
@@ -41,6 +44,7 @@ class CalendarApiImpl(private val context: Context) : CalendarApi {
         )
 
         cursor?.use {
+            val idIndex = it.getColumnIndex(CalendarContract.Events._ID)
             val titleIndex = it.getColumnIndex(CalendarContract.Events.TITLE)
             val descIndex = it.getColumnIndex(CalendarContract.Events.DESCRIPTION)
             val locationIndex = it.getColumnIndex(CalendarContract.Events.EVENT_LOCATION)
@@ -49,6 +53,7 @@ class CalendarApiImpl(private val context: Context) : CalendarApi {
 
             while (it.moveToNext()) {
                 val event = CalendarEvent(
+                    id = it.getLong(idIndex),
                     title = it.getString(titleIndex),
                     description = it.getString(descIndex),
                     location = it.getString(locationIndex),
@@ -81,8 +86,10 @@ class CalendarApiImpl(private val context: Context) : CalendarApi {
         cursor?.use {
             while (it.moveToNext()) {
                 val id = it.getLong(it.getColumnIndex(CalendarContract.Calendars._ID))
-                val name = it.getString(it.getColumnIndex(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
-                val account = it.getString(it.getColumnIndex(CalendarContract.Calendars.ACCOUNT_NAME))
+                val name =
+                    it.getString(it.getColumnIndex(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
+                val account =
+                    it.getString(it.getColumnIndex(CalendarContract.Calendars.ACCOUNT_NAME))
                 Log.d("CalendarList", "使用可能: ID=$id, Name=$name, Account=$account")
             }
         }
@@ -111,8 +118,10 @@ class CalendarApiImpl(private val context: Context) : CalendarApi {
         cursor?.use {
             while (it.moveToNext()) {
                 val id = it.getLong(it.getColumnIndex(CalendarContract.Calendars._ID))
-                val name = it.getString(it.getColumnIndex(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
-                val account = it.getString(it.getColumnIndex(CalendarContract.Calendars.ACCOUNT_NAME))
+                val name =
+                    it.getString(it.getColumnIndex(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
+                val account =
+                    it.getString(it.getColumnIndex(CalendarContract.Calendars.ACCOUNT_NAME))
                 Log.d("CalendarList", "選択されたカレンダー: ID=$id, Name=$name, Account=$account")
                 return id
             }
@@ -143,6 +152,14 @@ class CalendarApiImpl(private val context: Context) : CalendarApi {
 
         val uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
         Log.d("CalendarAdd", "イベントを追加しました: URI=$uri")
+    }
+
+    ///
+    override fun deleteCalendarEvent(eventId: Long) {
+        val deleteUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+        Log.d("CalendarDelete", "削除対象のURI: $deleteUri")
+        val rows = context.contentResolver.delete(deleteUri, null, null)
+        android.util.Log.d("CalendarDelete", "削除した件数: $rows")
     }
 
 }
