@@ -13,4 +13,6 @@ abstract class CalendarApi {
   String getPlatformVersion();
 
   List<CalendarEvent> getCalendarEvents();
+
+  void addCalendarEvent(CalendarEvent event);
 }

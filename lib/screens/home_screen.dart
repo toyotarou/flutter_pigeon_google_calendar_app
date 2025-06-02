@@ -72,7 +72,37 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('カレンダー予定一覧')),
+      appBar: AppBar(
+        title: const Text('カレンダー予定一覧'),
+
+        actions: <Widget>[
+          ElevatedButton(
+            ///////////////////////////
+            onPressed: () async {
+              final DateTime now = DateTime.now();
+              final CalendarEvent event = CalendarEvent(
+                title: 'テスト予定',
+                description: 'pigeonから追加した予定',
+                location: '東京',
+                startTimeMillis: now.millisecondsSinceEpoch,
+                endTimeMillis: now.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+              );
+
+              final CalendarApi api = CalendarApi();
+              await api.addCalendarEvent(event);
+
+              setState(() {
+                status = '予定を追加しました！';
+              });
+
+              await loadEvents();
+            },
+
+            ///////////////////////////
+            child: const Text('予定を追加'),
+          ),
+        ],
+      ),
       body: events.isEmpty
           ? Center(
               child: Column(
@@ -96,16 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : Column(
               children: <Widget>[
-                // GestureDetector(
-                //   onTap: () {
-                //     scrollToIndex(2025);
-                //   },
-                //   child: const CircleAvatar(),
-                // ),
-                //
-                //
-                //
-                displayYearSelectCircleAvatar(),
+                const SizedBox(height: 60, child: Text('list')),
 
                 Divider(color: Colors.white.withValues(alpha: 0.2), thickness: 5),
 
@@ -118,61 +139,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   ///
-  Widget displayYearSelectCircleAvatar() {
-    final List<Widget> list = <Widget>[];
-
-    final List<int> yearsList = <int>[];
-    for (final CalendarEvent element in events) {
-      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis!).year;
-
-      if (!yearsList.contains(year)) {
-        yearsList.add(year);
-      }
-    }
-
-    for (final int element in yearsList) {
-      list.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: GestureDetector(
-            onTap: () {
-              scrollToIndex(element);
-            },
-
-            child: CircleAvatar(child: Text(element.toString(), style: const TextStyle(fontSize: 12))),
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 60,
-
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(children: list),
-          ),
-          const SizedBox.shrink(),
-        ],
-      ),
-    );
-  }
-
-  ///
   Widget displayEventList() {
     final List<Widget> list = <Widget>[];
 
-    String keepYear = '';
     for (final CalendarEvent element in events) {
-      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis!).year;
-
       list.add(
         Container(
-          key: (year.toString() != keepYear) ? globalKeyList[year] : null,
-
           width: context.screenSize.width,
 
           padding: const EdgeInsets.symmetric(vertical: 3),
@@ -189,19 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
-
-      if (element.startTimeMillis != null) {
-        keepYear = year.toString();
-      }
     }
 
     return SingleChildScrollView(child: Column(children: list));
-  }
-
-  ///
-  Future<void> scrollToIndex(int index) async {
-    final BuildContext target = globalKeyList[index].currentContext!;
-
-    await Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 1000));
   }
 }

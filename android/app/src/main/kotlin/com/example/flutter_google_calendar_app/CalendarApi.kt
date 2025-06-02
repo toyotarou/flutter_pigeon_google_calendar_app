@@ -143,6 +143,7 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
 interface CalendarApi {
   fun getPlatformVersion(): String
   fun getCalendarEvents(): List<CalendarEvent>
+  fun addCalendarEvent(event: CalendarEvent)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -174,6 +175,24 @@ interface CalendarApi {
           channel.setMessageHandler { _, reply ->
             val wrapped: List<Any?> = try {
               listOf(api.getCalendarEvents())
+            } catch (exception: Throwable) {
+              CalendarApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_google_calendar_app.CalendarApi.addCalendarEvent$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventArg = args[0] as CalendarEvent
+            val wrapped: List<Any?> = try {
+              api.addCalendarEvent(eventArg)
+              listOf(null)
             } catch (exception: Throwable) {
               CalendarApiPigeonUtils.wrapError(exception)
             }
