@@ -50,16 +50,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final List<CalendarEvent> eventList = await api.getCalendarEvents();
 
       setState(() {
-        events = eventList;
+        final List<String> eventDateList = <String>[];
+        for (final CalendarEvent element in eventList) {
+          if (!eventDateList.contains(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString())) {
+            events.add(element);
 
-        // List<String> eventDateList = [];
-        // eventList.forEach((element) {
-        //   if (!eventDateList.contains(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString())) {
-        //     eventList.add(element);
-        //   }
-        //
-        //   eventDateList.add(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString());
-        // });
+            eventDateList.add(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString());
+          }
+        }
 
         status = '取得成功';
       });
