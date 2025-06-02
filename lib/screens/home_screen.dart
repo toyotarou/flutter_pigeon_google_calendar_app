@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../controllers/controllers_mixin.dart';
 import '../extensions/extensions.dart';
 import '../pigeons_api/calendar_api.dart';
+import 'components/schedule_input_alert.dart';
+import 'parts/calendar_app_dialog.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<HomeScreen> {
   List<CalendarEvent> events = <CalendarEvent>[];
 
   String status = '読み込み中...';
@@ -76,31 +80,53 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('カレンダー予定一覧'),
 
         actions: <Widget>[
-          ElevatedButton(
-            ///////////////////////////
-            onPressed: () async {
-              final DateTime now = DateTime.now();
-              final CalendarEvent event = CalendarEvent(
-                title: 'テスト予定',
-                description: 'pigeonから追加した予定',
-                location: '東京',
-                startTimeMillis: now.millisecondsSinceEpoch,
-                endTimeMillis: now.add(const Duration(hours: 1)).millisecondsSinceEpoch,
-              );
-
-              final CalendarApi api = CalendarApi();
-              await api.addCalendarEvent(event);
-
-              setState(() {
-                status = '予定を追加しました！';
-              });
-
+          // ElevatedButton(
+          //   ///////////////////////////
+          //   onPressed: () async {
+          //     final DateTime now = DateTime.now();
+          //     final CalendarEvent event = CalendarEvent(
+          //       title: 'テスト予定',
+          //       description: 'pigeonから追加した予定',
+          //       location: '東京',
+          //       startTimeMillis: now.millisecondsSinceEpoch,
+          //       endTimeMillis: now.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+          //     );
+          //
+          //     final CalendarApi api = CalendarApi();
+          //     await api.addCalendarEvent(event);
+          //
+          //     setState(() {
+          //       status = '予定を追加しました！';
+          //     });
+          //
+          //     // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
+          //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+          //   },
+          //
+          //   ///////////////////////////
+          //   child: const Text('予定を追加'),
+          // ),
+          //
+          //
+          //
+          IconButton(
+            onPressed: () {
               // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
             },
+            icon: const Icon(Icons.refresh),
+          ),
 
-            ///////////////////////////
-            child: const Text('予定を追加'),
+          IconButton(
+            onPressed: () {
+              CalendarAppDialog(
+                context: context,
+                widget: const ScheduleInputAlert(),
+                executeFunctionWhenDialogClose: true,
+                from: 'ScheduleInputAlert',
+              );
+            },
+            icon: const Icon(Icons.input),
           ),
         ],
       ),
@@ -127,7 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : Column(
               children: <Widget>[
-                //                const SizedBox(height: 60, child: Text('list')),
                 const SizedBox(height: 10),
 
                 displayYearList(),
@@ -158,9 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: GestureDetector(
-            onTap: () {
-              scrollToIndex(element);
-            },
+            onTap: () => scrollToIndex(element),
 
             child: CircleAvatar(child: Text(element.toString(), style: const TextStyle(fontSize: 12))),
           ),
