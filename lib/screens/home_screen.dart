@@ -17,8 +17,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<HomeScreen> {
-  List<CalendarEvent> events = <CalendarEvent>[];
-
   String status = '読み込み中...';
 
   List<GlobalKey> globalKeyList = <GlobalKey<State<StatefulWidget>>>[];
@@ -54,26 +52,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
   ///
   Future<void> loadEvents() async {
     try {
+      eventMap.clear();
+
       final CalendarApi api = CalendarApi();
 
       final List<CalendarEvent> eventList = await api.getCalendarEvents();
 
       setState(() {
-        final List<String> eventDateList = <String>[];
         for (final CalendarEvent element in eventList) {
           if (element.startTimeMillis != null) {
             final int stMillis = element.startTimeMillis!;
 
-            if (!eventDateList.contains(DateTime.fromMillisecondsSinceEpoch(stMillis).toString())) {
-              final int year = DateTime.fromMillisecondsSinceEpoch(stMillis).year;
+            final int year = DateTime.fromMillisecondsSinceEpoch(stMillis).year;
 
-              if (year >= 2020) {
-                events.add(element);
-
-                (eventMap[stMillis] ??= <CalendarEvent>[]).add(element);
-              }
-
-              eventDateList.add(DateTime.fromMillisecondsSinceEpoch(stMillis).toString());
+            if (year >= 2020) {
+              (eventMap[stMillis] ??= <CalendarEvent>[]).add(element);
             }
           }
         }
@@ -114,7 +107,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
           ),
         ],
       ),
-      body: events.isEmpty
+      body: eventMap.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -154,13 +147,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
     final List<Widget> list = <Widget>[];
 
     final List<int> yearList = <int>[];
-    for (final CalendarEvent element in events) {
-      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).year;
+    eventMap.forEach((int key, List<CalendarEvent> value) {
+      final int year = DateTime.fromMillisecondsSinceEpoch(key).year;
 
       if (!yearList.contains(year)) {
         yearList.add(year);
       }
-    }
+    });
 
     for (final int element in yearList) {
       list.add(
@@ -192,8 +185,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
 
     int keepYear = 0;
 
-    for (final CalendarEvent element in events) {
-      final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).year;
+    eventMap.forEach((int key, List<CalendarEvent> value) {
+      final int year = DateTime.fromMillisecondsSinceEpoch(key).year;
 
       if (keepYear != year) {
         list.add(
@@ -228,8 +221,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(element.title ?? '無題'),
-                    Text('開始: ${DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0)}'),
+                    Text(value[0].title ?? '無題'),
+                    Text('開始: ${DateTime.fromMillisecondsSinceEpoch(value[0].startTimeMillis ?? 0)}'),
+                    Text(value.length.toString()),
                   ],
                 ),
               ),
@@ -238,12 +232,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                 onPressed: () async {
                   final bool? confirm = await showDialog<bool>(
                     context: context,
-                    builder: (_) => DeleteEventConfirmDialog(event: element),
+                    builder: (_) => DeleteEventConfirmDialog(event: value[0]),
                   );
 
                   // ignore: use_if_null_to_convert_nulls_to_bools
-                  if (confirm == true && element.id != null) {
-                    await api.deleteCalendarEvent(element.id!);
+                  if (confirm == true && value[0].id != null) {
+                    await api.deleteCalendarEvent(value[0].id!);
 
                     if (mounted) {
                       // ignore: inference_failure_on_instance_creation, use_build_context_synchronously, always_specify_types
@@ -259,7 +253,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
       );
 
       keepYear = year;
-    }
+    });
 
     return SingleChildScrollView(
       child: DefaultTextStyle(
