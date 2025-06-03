@@ -220,7 +220,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
               Expanded(
                 child: DefaultTextStyle(
                   style: TextStyle(
-                    color: (value[0].calendarName == '日本の祝日') ? Colors.grey.withValues(alpha: 0.4) : Colors.white,
+                    color: (value[0].calendarName == '日本の祝日' || value[0].calendarName == '祝日')
+                        ? Colors.grey.withValues(alpha: 0.4)
+                        : Colors.white,
 
                     fontSize: 12,
                   ),
@@ -230,6 +232,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                       Text(value[0].title ?? '無題'),
                       Text('開始: ${DateTime.fromMillisecondsSinceEpoch(value[0].startTimeMillis ?? 0)}'),
                       Text(value.length.toString()),
+                      Text(value[0].calendarName ?? '-'),
                     ],
                   ),
                 ),
