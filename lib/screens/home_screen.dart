@@ -23,6 +23,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
 
   List<GlobalKey> globalKeyList = <GlobalKey<State<StatefulWidget>>>[];
 
+  Map<int, List<CalendarEvent>> eventMap = <int, List<CalendarEvent>>{};
+
   ///
   @override
   void initState() {
@@ -59,14 +61,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
       setState(() {
         final List<String> eventDateList = <String>[];
         for (final CalendarEvent element in eventList) {
-          if (!eventDateList.contains(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString())) {
-            final int year = DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).year;
+          if (element.startTimeMillis != null) {
+            final int stMillis = element.startTimeMillis!;
 
-            if (year >= 2020) {
-              events.add(element);
+            if (!eventDateList.contains(DateTime.fromMillisecondsSinceEpoch(stMillis).toString())) {
+              final int year = DateTime.fromMillisecondsSinceEpoch(stMillis).year;
+
+              if (year >= 2020) {
+                events.add(element);
+
+                (eventMap[stMillis] ??= <CalendarEvent>[]).add(element);
+              }
+
+              eventDateList.add(DateTime.fromMillisecondsSinceEpoch(stMillis).toString());
             }
-
-            eventDateList.add(DateTime.fromMillisecondsSinceEpoch(element.startTimeMillis ?? 0).toString());
           }
         }
 
