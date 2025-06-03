@@ -7,6 +7,7 @@ class CalendarEvent {
   String? location;
   int? startTimeMillis;
   int? endTimeMillis;
+  String? calendarName;
 }
 
 @HostApi()

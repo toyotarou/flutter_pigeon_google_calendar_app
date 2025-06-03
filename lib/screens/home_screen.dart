@@ -218,13 +218,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
           child: Row(
             children: <Widget>[
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(value[0].title ?? '無題'),
-                    Text('開始: ${DateTime.fromMillisecondsSinceEpoch(value[0].startTimeMillis ?? 0)}'),
-                    Text(value.length.toString()),
-                  ],
+                child: DefaultTextStyle(
+                  style: TextStyle(
+                    color: (value[0].calendarName == '日本の祝日') ? Colors.grey.withValues(alpha: 0.4) : Colors.white,
+
+                    fontSize: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(value[0].title ?? '無題'),
+                      Text('開始: ${DateTime.fromMillisecondsSinceEpoch(value[0].startTimeMillis ?? 0)}'),
+                      Text(value.length.toString()),
+                    ],
+                  ),
                 ),
               ),
 

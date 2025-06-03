@@ -85,7 +85,8 @@ data class CalendarEvent (
   val description: String? = null,
   val location: String? = null,
   val startTimeMillis: Long? = null,
-  val endTimeMillis: Long? = null
+  val endTimeMillis: Long? = null,
+  val calendarName: String? = null
 )
  {
   companion object {
@@ -96,7 +97,8 @@ data class CalendarEvent (
       val location = pigeonVar_list[3] as String?
       val startTimeMillis = pigeonVar_list[4] as Long?
       val endTimeMillis = pigeonVar_list[5] as Long?
-      return CalendarEvent(id, title, description, location, startTimeMillis, endTimeMillis)
+      val calendarName = pigeonVar_list[6] as String?
+      return CalendarEvent(id, title, description, location, startTimeMillis, endTimeMillis, calendarName)
     }
   }
   fun toList(): List<Any?> {
@@ -107,6 +109,7 @@ data class CalendarEvent (
       location,
       startTimeMillis,
       endTimeMillis,
+      calendarName,
     )
   }
   override fun equals(other: Any?): Boolean {

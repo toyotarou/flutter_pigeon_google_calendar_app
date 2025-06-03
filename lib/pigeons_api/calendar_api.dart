@@ -37,6 +37,7 @@ class CalendarEvent {
     this.location,
     this.startTimeMillis,
     this.endTimeMillis,
+    this.calendarName,
   });
 
   int? id;
@@ -51,6 +52,8 @@ class CalendarEvent {
 
   int? endTimeMillis;
 
+  String? calendarName;
+
   List<Object?> _toList() {
     return <Object?>[
       id,
@@ -59,6 +62,7 @@ class CalendarEvent {
       location,
       startTimeMillis,
       endTimeMillis,
+      calendarName,
     ];
   }
 
@@ -74,6 +78,7 @@ class CalendarEvent {
       location: result[3] as String?,
       startTimeMillis: result[4] as int?,
       endTimeMillis: result[5] as int?,
+      calendarName: result[6] as String?,
     );
   }
 
